@@ -1,16 +1,19 @@
 'use client'
 import Auth from '../components/Auth/index.js'
-import { useState } from 'react'
+import { useState, useContext } from 'react'
 import Feed from '@/components/Feed/index.js'
+import { GlobalContext } from '../../state/context/GlobalContext.js'
 
 const HomePage = () => {
   
-  const [isAuthenticated, setIsAuthenticated] = useState(true)
+  const  { isAuthenticated } = useContext(GlobalContext)
+
+  console.log(isAuthenticated)
 
 
 
 
-  return isAuthenticated ? <Feed/> : <Auth/>;
+  return isAuthenticated ? <Feed /> : <Auth/>;
 
   
 }
