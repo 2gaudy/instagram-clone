@@ -1,20 +1,30 @@
 'use client'
-import React from 'react'
+import React, { useState } from 'react'
 import Lottie from "react-lottie-player"
 import Button from "../Button/index"
 import AuthAnimation from "../../../public/animations/auth_page_animation.json"
 import useForm from '@/hooks/useForm'
 import { useMemo, useContext } from 'react'
 import { AiFillFacebook } from "react-icons/ai"
-import { GlobalContext } from '../../../state/context/GlobalContext'
+import { GlobalContext, GlobalDispatchContext } from '../../../state/context/GlobalContext'
 
+
+const FORM_TYPES = {
+  SIGNUP: true,
+  LOGIN: false
+}
 
 
 const Auth = () => {
 
-    const state = useContext(GlobalContext)
+    const [authFormType, setAuthFormType] = useState(FORM_TYPES)
 
-    console.log(state)
+
+    const {isAuthenticated, isOnboarded, user, isLoading} = useContext(GlobalContext)
+
+    const dispatch = useContext(GlobalDispatchContext)
+
+    
 
     const {form, onChangeHandler} = useForm({
         email: '',
