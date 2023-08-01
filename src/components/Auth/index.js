@@ -7,17 +7,14 @@ import useForm from '@/hooks/useForm'
 import { useMemo, useContext } from 'react'
 import { AiFillFacebook } from "react-icons/ai"
 import { GlobalContext, GlobalDispatchContext } from '../../../state/context/GlobalContext'
-
-
-const FORM_TYPES = {
-  SIGNUP: true,
-  LOGIN: false
-}
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth'
+import {auth} from "../../lib/firebase"
+import { RiLoader4Line } from 'react-icons/ri'
 
 
 const Auth = () => {
 
-    const [authFormType, setAuthFormType] = useState(FORM_TYPES)
+    const [isLoginForm, setIsLoginForm] = useState(false)
 
 
     const {isAuthenticated, isOnboarded, user, isLoading} = useContext(GlobalContext)
@@ -32,16 +29,32 @@ const Auth = () => {
       });
     
     
-      const submitHandler = async (e) => {
-        e.preventDefault();
-        console.log(form)
+    const submitHandler = async (e) => {
+      e.preventDefault();
+      dispatch({
+        type: 'SET_LOADING',
+        payload: {
+          isLoading: true
+        }
+      })
+      if(isLoginForm){
+        await signInWithEmailAndPassword(auth, form.email, form.password)
+      }else {
+        await createUserWithEmailAndPassword(auth, form.email, form.password)
       }
+      dispatch({
+        type: 'SET_LOADING',
+        payload: {
+          isLoading: false
+        }
+      })
+    }
     
-      const isDisabled = useMemo(() => {
-        return !Object.values(form).every((val) => !!val);
+    const isDisabled = useMemo(() => {
+      return !Object.values(form).every((val) => !!val);
+  
     
-      
-      }, [form])
+    }, [form])
       
       return (
         <div className='w-screen h-screen flex items-center justify-center bg-[#FAFAFA]'>
@@ -55,9 +68,12 @@ const Auth = () => {
               />
             </div>
             
-            <div className='w-full flex flex-col space-y-5 items-center'>
-            <div className='w-4/5 bg-white border flex flex-col space-y-5  p-10'>
-    
+            <div className='w-full flex flex-col space-y-5 items-center '>
+            
+            <div className='relative w-4/5 bg-white border flex flex-col space-y-5  p-10'>
+              <div className='flex absolute inset-0 w-full h-full bg-black bg-opacity-10 items-center justify-center a-1'>
+                <RiLoader4Line size={50} className='animate-spin'/>
+              </div>
               <form onSubmit={submitHandler} className='flex flex-col space-y-4  items-center'>
                 <div className='tracking-widest text-5xl my-5'>Instagram</div>
                 <input type="email" 
@@ -81,7 +97,7 @@ const Auth = () => {
                   className='bg-[#0095F6] py-1 text-white active:scale-95 transform transition w-full disabled:bg-opacity-50 disabled:scale-100 rounded text-sm font-semibold' 
                   disabled={isDisabled}
                 >
-                  Log In
+                  { isLoginForm ? 'Log In' : 'Sign Up' }
                 </button>
               </form>
               <div className='w-full flex items-center justify-center my-5 space-x-2'>
@@ -91,13 +107,15 @@ const Auth = () => {
               </div>
               <div className='w-full text-center flex text-indigo-900 space-x-2 items-center justify-center '>
                 <AiFillFacebook className='inline-block text-2xl mr-2' />
-                <span className='font-semibold text-sm'>Log in with Facebook</span>
+                <span className='font-semibold text-sm'>
+                  { isLoginForm ? 'Log In' : 'Sign Up' } with Facebook
+                </span>
               </div>
-              <div className='w-full text-center text-xs text-indigo-900'>Forgotten your password?</div>
+              { isLoginForm && <div className='w-full text-center text-xs text-indigo-900'>Forgotten your password?</div>}
             
             </div>
             <div className='w-4/5 bg-white border flex flex-col ml-2 text-sm  border-gray-300 space-y-5 text-center py-5'>
-              Don&apos;t have an account? <span className='text-blue-600 inline-block font-semibold'>Sign up</span>
+              {isLoginForm ? "Don't have an account?" : 'Already have an account?'} <button onClick={()=> setIsLoginForm((prev) => !prev )} className='text-blue-600 inline-block font-semibold'>{isLoginForm ? "Sign Up" : "Log In" }</button>
             </div>
             </div>
           </div>
