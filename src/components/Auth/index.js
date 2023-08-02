@@ -24,16 +24,11 @@ const Auth = () => {
 
     const dispatch = useContext(GlobalDispatchContext)
 
-    
-
-    const {form, onChangeHandler} = useForm({
+  
+    const {form, onChangeHandler, resetForm} = useForm({
         email: '',
         password: ''
       });
-    
-    
-    
-
 
     const submitHandler = async (e) => {
       e.preventDefault();
@@ -49,11 +44,11 @@ const Auth = () => {
       if(isLoginForm){
         const [data, loginError] = await handlePromise(signInWithEmailAndPassword(auth, form.email, form.password))
         error = loginError
-        console.log(data)
+        
       }else {
         const [data, signupError] = await handlePromise(createUserWithEmailAndPassword(auth, form.email, form.password))
         error = signupError
-        console.log(data)
+        
       }
       dispatch({
         type: 'SET_LOADING',
@@ -61,13 +56,16 @@ const Auth = () => {
           isLoading: false
         }
       })
-      if(error) toast.error(error)
+      if(error) toast.error(error.message)
+      if (!error) toast.success(`You have sucessfully ${isLoginForm ? 'logged in' : 'signed up'}`)
+      resetForm()
     }
+
+    
     
     const isDisabled = useMemo(() => {
       return !Object.values(form).every((val) => !!val);
   
-    
     }, [form])
       
       return (
