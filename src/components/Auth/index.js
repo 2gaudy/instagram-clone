@@ -8,8 +8,11 @@ import { useMemo, useContext } from 'react'
 import { AiFillFacebook } from "react-icons/ai"
 import { GlobalContext, GlobalDispatchContext } from '../../../state/context/GlobalContext'
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from 'firebase/auth'
-import {auth} from "../../lib/firebase"
-import { RiLoader4Line } from 'react-icons/ri'
+import { auth } from "../../lib/firebase"
+
+import { handlePromise } from '../../utils/handlePromise'
+import { toast } from 'react-hot-toast'
+import LoadingOverlay from '../LoadingOverlay'
 
 
 const Auth = () => {
@@ -29,6 +32,9 @@ const Auth = () => {
       });
     
     
+    
+
+
     const submitHandler = async (e) => {
       e.preventDefault();
       dispatch({
@@ -37,10 +43,17 @@ const Auth = () => {
           isLoading: true
         }
       })
+
+      let error = null
+
       if(isLoginForm){
-        await signInWithEmailAndPassword(auth, form.email, form.password)
+        const [data, loginError] = await handlePromise(signInWithEmailAndPassword(auth, form.email, form.password))
+        error = loginError
+        console.log(data)
       }else {
-        await createUserWithEmailAndPassword(auth, form.email, form.password)
+        const [data, signupError] = await handlePromise(createUserWithEmailAndPassword(auth, form.email, form.password))
+        error = signupError
+        console.log(data)
       }
       dispatch({
         type: 'SET_LOADING',
@@ -48,6 +61,7 @@ const Auth = () => {
           isLoading: false
         }
       })
+      if(error) toast.error(error)
     }
     
     const isDisabled = useMemo(() => {
@@ -71,9 +85,7 @@ const Auth = () => {
             <div className='w-full flex flex-col space-y-5 items-center '>
             
             <div className='relative w-4/5 bg-white border flex flex-col space-y-5  p-10'>
-              <div className='flex absolute inset-0 w-full h-full bg-black bg-opacity-10 items-center justify-center a-1'>
-                <RiLoader4Line size={50} className='animate-spin'/>
-              </div>
+              {isLoading && <LoadingOverlay/>}
               <form onSubmit={submitHandler} className='flex flex-col space-y-4  items-center'>
                 <div className='tracking-widest text-5xl my-5'>Instagram</div>
                 <input type="email" 
